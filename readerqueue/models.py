@@ -12,7 +12,8 @@ class Asset(Base):
 
     id = Column(String, primary_key=True)
     url = Column(String, nullable=False, index=True, unique=True)
-    description = Column(String)
+    title = Column(String)
+    change_hash = Column(String)
     pinboard_created_at = Column(DateTime)
     skips = relationship("AssetSkip", back_populates="asset")
 

@@ -26,7 +26,7 @@ def app():
 
 def test_show_link(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -44,13 +44,14 @@ def test_show_link(httpx_mock, client):
     client.get("/link/sync")
     rv = client.get("/link/suggested")
     assert "https://fs.blog/2018/12/habits-james-clear/" in rv.data.decode("utf-8")
+    assert "Why Small Habits Make a Big Difference" in rv.data.decode("utf-8")
 
 
 def test_do_not_show_after_three_skips(httpx_mock, client):
     from readerqueue.app import db, skip_link, app
 
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",

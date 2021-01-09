@@ -1,12 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>ReaderQueue Suggested Link</title>
-</head>
-<body>
-    <h1>Read this next</h1>
-    <p>{{ pinboard_href }}</p>
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <a href="{{asset.url}}" target="_blank" rel="noopener noreferrer">{{asset.title}}</a>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <form method="POST" action="{{url_for('skip_link', link_id=asset.id)}}">
+                <input type="submit" class="btn btn-primary" value="Skip">
+            </form>
+        </div>
+        <div class="col-sm">
+            <a class="btn btn-secondary" href="{{url_for('suggested_link')}}" role="button">Next</a>
+        </div>
+        <div class="col-sm">
+            <a class="btn btn-success" href="{{asset.url}}" target="_blank" rel="noopener noreferrer" role="button">Read</a>
+        </div>
+    </div>
+</div>
+</div>
 
-</body>
-</html>
+{% endblock %}

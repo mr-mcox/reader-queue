@@ -13,6 +13,7 @@ Flask-Migrate = "^2.5.3"
 Flask-Script = "^2.0.6"
 httpx = "^0.16.1"
 maya = "^0.6.1"
+Bootstrap-Flask = "^1.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
