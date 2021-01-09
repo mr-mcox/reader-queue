@@ -41,6 +41,7 @@ def test_show_link(httpx_mock, client):
             }
         ],
     )
+    client.get("/link/sync")
     rv = client.get("/link/suggested")
     assert "https://fs.blog/2018/12/habits-james-clear/" in rv.data.decode("utf-8")
 
@@ -75,6 +76,7 @@ def test_do_not_show_after_three_skips(httpx_mock, client):
             },
         ],
     )
+    client.get("/link/sync")
     skip_url = "https://huggingface.co/blog/ray-tune"
     skip_url_seen = False
     for i in range(10):

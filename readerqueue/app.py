@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from readerqueue.models import Asset, AssetSkip
 import httpx
 import os
@@ -21,8 +21,8 @@ def hello_world():
     return "Hello, World!"
 
 
-@app.route("/link/suggested")
-def suggested_link():
+@app.route("/link/sync")
+def sync():
     pinboard_auth = app.config["PINBOARD_AUTH_TOKEN"]
     links = httpx.get(
         f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json"
@@ -34,6 +34,12 @@ def suggested_link():
             asset = Asset(id=id_, url=link["href"])
             db.session.add(asset)
     db.session.commit()
+    return redirect(url_for("suggested_link"))
+
+
+@app.route("/link/suggested")
+def suggested_link():
+
     assets = (
         db.session.query(Asset)
         .outerjoin(AssetSkip)
@@ -52,4 +58,4 @@ def skip_link(link_id):
     asset.skips.append(skip)
     db.session.add(asset)
     db.session.commit()
-    return ""
+    return redirect(url_for("suggested_link"))
