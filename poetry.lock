@@ -329,6 +329,22 @@ toml = "*"
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
+name = "pytest-flask"
+version = "1.1.0"
+description = "A set of py.test fixtures to test Flask applications."
+category = "dev"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+Flask = "*"
+pytest = ">=5.2"
+Werkzeug = ">=0.7"
+
+[package.extras]
+docs = ["sphinx", "sphinx-rtd-theme"]
+
+[[package]]
 name = "pytest-httpx"
 version = "0.10.1"
 description = "Send responses to httpx."
@@ -473,7 +489,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "618d01982d704db48b132874a65fac97a2ea4c6c77267d0e4c67d65042574387"
+content-hash = "bc06738835a871a76a6ce1beda156e3f4200cd3bcafe6d22efffde7c9001f14f"
 
 [metadata.files]
 alembic = [
@@ -653,6 +669,10 @@ pyparsing = [
 pytest = [
     {file = "pytest-6.2.1-py3-none-any.whl", hash = "sha256:1969f797a1a0dbd8ccf0fecc80262312729afea9c17f1d70ebf85c5e76c6f7c8"},
     {file = "pytest-6.2.1.tar.gz", hash = "sha256:66e419b1899bc27346cb2c993e12c5e5e8daba9073c1fbce33b9807abc95c306"},
+]
+pytest-flask = [
+    {file = "pytest-flask-1.1.0.tar.gz", hash = "sha256:9c136afd6d0fb045b0b8fd2363421b6670bfebd21d9141f79669d9051c9d2d05"},
+    {file = "pytest_flask-1.1.0-py3-none-any.whl", hash = "sha256:28a24a5c12778f6e2b12eaf825e71944210aaba061edbd2c3e15e3664bc15407"},
 ]
 pytest-httpx = [
     {file = "pytest_httpx-0.10.1-py3-none-any.whl", hash = "sha256:d32e8f6fb7e028f0313f5f5a2d463c8673eb43fd11a9bfe8527299717a7764c4"},
