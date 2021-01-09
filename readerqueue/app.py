@@ -7,6 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 import hashlib
 from datetime import datetime
 from sqlalchemy import func
+import maya
+import math
 
 
 app = Flask(__name__)
@@ -31,7 +33,7 @@ def sync():
         id_ = hashlib.sha3_256(link["href"].encode("utf-8")).hexdigest()
         asset = db.session.query(Asset).filter(Asset.id == id_).one_or_none()
         if asset is None:
-            asset = Asset(id=id_, url=link["href"])
+            asset = Asset(id=id_, url=link["href"], pinboard_created_at=maya.parse(link["time"]).datetime())
             db.session.add(asset)
     db.session.commit()
     return redirect(url_for("suggested_link"))
@@ -39,15 +41,22 @@ def sync():
 
 @app.route("/link/suggested")
 def suggested_link():
-
-    assets = (
-        db.session.query(Asset)
+    result = (
+        db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
         .outerjoin(AssetSkip)
         .group_by(Asset.id)
         .having(func.count(1) < 3)
         .all()
     )
-    url = random.choice(assets).url
+    assets, created_at, skips = list(zip(*result))
+    days_passed_ln = [math.log((datetime.now() - d).days) for d in created_at]
+    days_passed_adj = [d + s for d, s in zip(days_passed_ln, skips)]
+    if len(days_passed_adj) > 1:
+        max_score = max(*days_passed_adj) + 0.1
+    else:
+        max_score = days_passed_adj[0] + 0.1
+    weights = [max_score - x for x in days_passed_adj]
+    url = random.choices(assets, k=1, weights=weights )[0].url
     return render_template("suggested_link.html", pinboard_href=url)
 
 
