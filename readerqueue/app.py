@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for
-from readerqueue.models import Asset, AssetSkip
+from readerqueue.models import Asset, AssetSkip, AssetTag
 import httpx
 import os
 import random
@@ -44,6 +44,9 @@ def sync():
                 change_hash=link["meta"],
                 pinboard_created_at=maya.parse(link["time"]).datetime(),
             )
+            for tag_str in link["tags"].split():
+                tag = AssetTag(tag=tag_str)
+                asset.tags.append(tag)
             db.session.add(asset)
     db.session.commit()
     return redirect(url_for("suggested_link"))
@@ -80,3 +83,9 @@ def skip_link(link_id):
     db.session.add(asset)
     db.session.commit()
     return redirect(url_for("suggested_link"))
+
+
+@app.route("/filter/select")
+def select_filter():
+    tags = [r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()]
+    return render_template("filter_select.html", tags=tags)

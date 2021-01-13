@@ -48,7 +48,7 @@ def test_show_link(httpx_mock, client):
 
 
 def test_do_not_show_after_three_skips(httpx_mock, client):
-    from readerqueue.app import db, skip_link, app
+    from readerqueue.app import db
 
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
@@ -95,3 +95,26 @@ def test_do_not_show_after_three_skips(httpx_mock, client):
     for _ in range(10):
         rv = client.get("/link/suggested")
         assert skip_url not in rv.data.decode("utf-8")
+
+
+def test_show_tags(httpx_mock, client):
+    httpx_mock.add_response(
+        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        json=[
+            {
+                "href": "https://fs.blog/2018/12/habits-james-clear/",
+                "description": "Why Small Habits Make a Big Difference",
+                "extended": "",
+                "meta": "58d345907a0d7379d0084efe0523e7e9",
+                "hash": "a9b262277a603c023b9fd20d613a9193",
+                "time": "2020-11-15T20:04:09Z",
+                "shared": "no",
+                "toread": "yes",
+                "tags": "habits productivity",
+            },
+        ],
+    )
+    client.get("/link/sync")
+    rv = client.get("/filter/select")
+    assert "habits" in rv.data.decode("utf-8")
+    assert "productivity" in rv.data.decode("utf-8")
