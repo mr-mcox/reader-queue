@@ -1,10 +1,9 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, session
 from readerqueue.models import Asset, AssetSkip, AssetTag
 import httpx
 import os
 import random
 from flask_sqlalchemy import SQLAlchemy
-import hashlib
 from datetime import datetime
 from sqlalchemy import func
 import maya
@@ -14,6 +13,7 @@ from flask_bootstrap import Bootstrap
 
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 app.config["PINBOARD_AUTH_TOKEN"] = os.environ.get("PINBOARD_AUTH_TOKEN")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -54,13 +54,16 @@ def sync():
 
 @app.route("/link/suggested")
 def suggested_link():
-    result = (
+    query = (
         db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
         .outerjoin(AssetSkip)
         .group_by(Asset.id)
         .having(func.count(1) < 3)
-        .all()
     )
+    tag_filter = session.get("tag_filter")
+    if tag_filter is not None and tag_filter != "all":
+        query = query.join(AssetTag).filter(AssetTag.tag == tag_filter)
+    result = query.all()
     assets, created_at, skips = list(zip(*result))
     days_passed_ln = [
         math.log((datetime.utcnow() - d).total_seconds()) for d in created_at
@@ -85,7 +88,13 @@ def skip_link(link_id):
     return redirect(url_for("suggested_link"))
 
 
-@app.route("/filter/select")
+@app.route("/filter/select", methods=["GET", "POST"])
 def select_filter():
-    tags = [r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()]
-    return render_template("filter_select.html", tags=tags)
+    if request.method == "POST":
+        session["tag_filter"] = request.form["tag"]
+        return redirect(url_for("suggested_link"))
+    else:
+        tags = [
+            r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()
+        ]
+        return render_template("filter_select.html", tags=tags)
