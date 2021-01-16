@@ -49,6 +49,7 @@ def sync():
 def suggested_link():
     query = (
         db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
+        .filter(Asset.read_at == None)
         .outerjoin(AssetSkip)
         .group_by(Asset.id)
         .having(func.count(1) < 3)
@@ -78,6 +79,12 @@ def skip_link(link_id):
     asset.skips.append(skip)
     db.session.add(asset)
     db.session.commit()
+    return redirect(url_for("suggested_link"))
+
+@app.route("/link/<link_id>/read", methods=["POST"])
+def read_link(link_id):
+    asset = db.session.query(Asset).filter(Asset.id == link_id).one()
+    asset.read_at = datetime.utcnow()
     return redirect(url_for("suggested_link"))
 
 

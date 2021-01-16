@@ -11,9 +11,12 @@
             </form>
         </div>
         <div class="col-sm">
-            <a class="btn btn-secondary" href="{{url_for('suggested_link')}}" role="button">Next</a>
+            <form method="POST" action="{{url_for('read_link', link_id=asset.id)}}">
+                <input type="submit" class="btn btn-secondary" value="Complete">
+            </form>
         </div>
         <div class="col-sm">
+
             <a class="btn btn-success" href="{{asset.url}}" target="_blank" rel="noopener noreferrer" role="button">Read</a>
         </div>
     </div>

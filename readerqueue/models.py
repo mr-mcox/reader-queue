@@ -15,6 +15,7 @@ class Asset(Base):
     title = Column(String)
     change_hash = Column(String)
     pinboard_created_at = Column(DateTime)
+    read_at = Column(DateTime)
     skips = relationship("AssetSkip", back_populates="asset")
     tags = relationship("AssetTag", back_populates="asset")
 
