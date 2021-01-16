@@ -2,14 +2,15 @@ import pytest
 from readerqueue.models import Base, Asset
 from sqlalchemy import create_engine
 from flask import url_for
+from readerqueue import create_app
 
 import os
 
 
 @pytest.fixture
 def app():
-    from readerqueue.app import app
 
+    app = create_app()
     db_pass = os.environ.get("DB_PASS")
 
     db_uri = f"postgresql://readerqueue:{db_pass}@localhost:5432/reader-queue-test"
@@ -49,7 +50,7 @@ def test_show_link(httpx_mock, client):
 
 
 def test_do_not_show_after_three_skips(httpx_mock, client):
-    from readerqueue.app import db
+    from readerqueue.main import db
 
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
@@ -91,14 +92,15 @@ def test_do_not_show_after_three_skips(httpx_mock, client):
     skip_asset = db.session.query(Asset).filter(Asset.url == skip_url).one()
     # Post skip three times
     for _ in range(3):
-        client.post(url_for("skip_link", link_id=skip_asset.id, _external=False))
+        client.post(url_for("main.skip_link", link_id=skip_asset.id, _external=False))
 
     for _ in range(10):
         rv = client.get("/link/suggested")
         assert skip_url not in rv.data.decode("utf-8")
 
+
 def test_do_not_show_if_read(httpx_mock, client):
-    from readerqueue.app import db
+    from readerqueue.main import db
 
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
@@ -138,7 +140,7 @@ def test_do_not_show_if_read(httpx_mock, client):
     assert read_url_seen
 
     read_asset = db.session.query(Asset).filter(Asset.url == read_url).one()
-    client.post(url_for("read_link", link_id=read_asset.id, _external=False))
+    client.post(url_for("main.read_link", link_id=read_asset.id, _external=False))
 
     for _ in range(10):
         rv = client.get("/link/suggested")

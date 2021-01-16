@@ -1,35 +1,33 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import (
+    render_template,
+    redirect,
+    url_for,
+    request,
+    session,
+    Blueprint,
+    current_app,
+)
 from readerqueue.models import Asset, AssetSkip, AssetTag
 import httpx
-import os
 import random
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import func
 import maya
 import math
-import logging
-from flask_bootstrap import Bootstrap
+from . import db
 
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
-app.config["PINBOARD_AUTH_TOKEN"] = os.environ.get("PINBOARD_AUTH_TOKEN")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.logger.setLevel(logging.INFO)
-Bootstrap(app)
-db = SQLAlchemy(app)
+main = Blueprint("main", __name__)
 
 
-@app.route("/")
+@main.route("/")
 def index():
-    return "Hello, World!"
+    return render_template("index.html")
 
 
-@app.route("/link/sync")
+@main.route("/link/sync")
 def sync():
-    pinboard_auth = app.config["PINBOARD_AUTH_TOKEN"]
+    pinboard_auth = current_app.config["PINBOARD_AUTH_TOKEN"]
     links = httpx.get(
         f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json&meta=1"
     ).json()
@@ -42,10 +40,10 @@ def sync():
         if asset.change_hash != link["meta"]:
             update_tags(asset, link["tags"])
     db.session.commit()
-    return redirect(url_for("suggested_link"))
+    return redirect(url_for("main.suggested_link"))
 
 
-@app.route("/link/suggested")
+@main.route("/link/suggested")
 def suggested_link():
     query = (
         db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
@@ -72,27 +70,28 @@ def suggested_link():
     return render_template("suggested_link.html", asset=asset)
 
 
-@app.route("/link/<link_id>/skip", methods=["POST"])
+@main.route("/link/<link_id>/skip", methods=["POST"])
 def skip_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     skip = AssetSkip(occurred_at=datetime.utcnow())
     asset.skips.append(skip)
     db.session.add(asset)
     db.session.commit()
-    return redirect(url_for("suggested_link"))
+    return redirect(url_for("main.suggested_link"))
 
-@app.route("/link/<link_id>/read", methods=["POST"])
+
+@main.route("/link/<link_id>/read", methods=["POST"])
 def read_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     asset.read_at = datetime.utcnow()
-    return redirect(url_for("suggested_link"))
+    return redirect(url_for("main.suggested_link"))
 
 
-@app.route("/filter/select", methods=["GET", "POST"])
+@main.route("/filter/select", methods=["GET", "POST"])
 def select_filter():
     if request.method == "POST":
         session["tag_filter"] = request.form["tag"]
-        return redirect(url_for("suggested_link"))
+        return redirect(url_for("main.suggested_link"))
     else:
         tags = [
             r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()

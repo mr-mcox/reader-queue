@@ -24,7 +24,10 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            {{ render_nav_item('index', 'Home', use_li=True) }}
+            {{ render_nav_item('main.index', 'Home', use_li=True) }}
+        </ul>
+        <ul class="navbar-nav mr-auto">
+            {{ render_nav_item('main.select_filter', 'Filter', use_li=True) }}
         </ul>
     </div>
 </nav>

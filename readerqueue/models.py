@@ -34,3 +34,11 @@ class AssetTag(Base):
     tag = Column(String, index=True)
     asset_id = Column(String, ForeignKey("assets.id"))
     asset = relationship("Asset", back_populates="tags")
+
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
+    email = Column(String, unique=True)
+    password_hash = Column(String(100))
+    pinboard_auth = Column(String(100))
