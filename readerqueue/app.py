@@ -37,17 +37,10 @@ def sync():
         id_ = link["hash"]
         asset = db.session.query(Asset).filter(Asset.id == id_).one_or_none()
         if asset is None:
-            asset = Asset(
-                id=id_,
-                url=link["href"],
-                title=link["description"],
-                change_hash=link["meta"],
-                pinboard_created_at=maya.parse(link["time"]).datetime(),
-            )
-            for tag_str in link["tags"].split():
-                tag = AssetTag(tag=tag_str)
-                asset.tags.append(tag)
+            asset = build_new_asset(link)
             db.session.add(asset)
+        if asset.change_hash != link["meta"]:
+            update_tags(asset, link["tags"])
     db.session.commit()
     return redirect(url_for("suggested_link"))
 
@@ -98,3 +91,29 @@ def select_filter():
             r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()
         ]
         return render_template("filter_select.html", tags=tags)
+
+
+def build_new_asset(link):
+    id_ = link["hash"]
+    asset = Asset(
+        id=id_,
+        url=link["href"],
+        title=link["description"],
+        change_hash=link["meta"],
+        pinboard_created_at=maya.parse(link["time"]).datetime(),
+    )
+    for tag_str in link["tags"].split():
+        tag = AssetTag(tag=tag_str)
+        asset.tags.append(tag)
+    return asset
+
+
+def update_tags(asset, link_tags):
+    current_tags = set(link_tags.split())
+    existing_tags = {t.tag for t in asset.tags}
+    remove_tags = [t for t in asset.tags if t.tag in existing_tags - current_tags]
+    for tag in remove_tags:
+        db.session.delete(tag)
+    new_tags = current_tags - existing_tags
+    for tag in new_tags:
+        asset.tags.append(AssetTag(tag=tag))
