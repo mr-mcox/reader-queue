@@ -9,7 +9,7 @@ from flask import (
     flash,
 )
 from flask_login import logout_user, login_required, current_user
-from readerqueue.models import Asset, AssetSkip, AssetTag
+from readerqueue.models import Asset, AssetSkip, AssetTag, User
 import httpx
 import random
 from datetime import datetime
@@ -37,10 +37,16 @@ def sync():
     ).json()
     for link in links:
         id_ = link["hash"]
-        asset = db.session.query(Asset).filter(Asset.id == id_).one_or_none()
+        asset = (
+            db.session.query(Asset)
+            .filter(Asset.upstream_id == id_)
+            .filter(User.id == current_user.id)
+            .one_or_none()
+        )
         if asset is None:
             asset = build_new_asset(link)
-            db.session.add(asset)
+            current_user.assets.append(asset)
+            db.session.add(current_user)
         if asset.change_hash != link["meta"]:
             update_tags(asset, link["tags"])
     db.session.commit()
@@ -53,6 +59,7 @@ def suggested_link():
     query = (
         db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
         .filter(Asset.read_at == None)
+        .filter(Asset.user_id == current_user.id)
         .outerjoin(AssetSkip)
         .group_by(Asset.id)
         .having(func.count(1) < 3)
@@ -102,7 +109,12 @@ def select_filter():
         return redirect(url_for("main.suggested_link"))
     else:
         tags = [
-            r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()
+            r[0]
+            for r in db.session.query(AssetTag.tag)
+            .join(Asset)
+            .filter(Asset.user_id == current_user.id)
+            .group_by(AssetTag.tag)
+            .all()
         ]
         return render_template("filter_select.html", tags=tags)
 
@@ -125,13 +137,15 @@ def profile_get():
 def profile_post():
     flash("Profile updated")
     current_user.pinboard_auth = request.form.get("pinboard_auth")
+    db.session.add(current_user)
+    db.session.commit()
     return render_template("profile.html")
 
 
 def build_new_asset(link):
     id_ = link["hash"]
     asset = Asset(
-        id=id_,
+        upstream_id=id_,
         url=link["href"],
         title=link["description"],
         change_hash=link["meta"],
