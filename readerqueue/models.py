@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
+from flask_login import UserMixin
 import uuid
 
 Base = declarative_base()
@@ -36,7 +37,7 @@ class AssetTag(Base):
     asset = relationship("Asset", back_populates="tags")
 
 
-class User(Base):
+class User(UserMixin, Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
     email = Column(String, unique=True)

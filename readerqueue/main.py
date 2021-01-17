@@ -7,6 +7,7 @@ from flask import (
     Blueprint,
     current_app,
 )
+from flask_login import logout_user, login_required
 from readerqueue.models import Asset, AssetSkip, AssetTag
 import httpx
 import random
@@ -21,11 +22,13 @@ main = Blueprint("main", __name__)
 
 
 @main.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 
 @main.route("/link/sync")
+@login_required
 def sync():
     pinboard_auth = current_app.config["PINBOARD_AUTH_TOKEN"]
     links = httpx.get(
@@ -44,6 +47,7 @@ def sync():
 
 
 @main.route("/link/suggested")
+@login_required
 def suggested_link():
     query = (
         db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
@@ -71,6 +75,7 @@ def suggested_link():
 
 
 @main.route("/link/<link_id>/skip", methods=["POST"])
+@login_required
 def skip_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     skip = AssetSkip(occurred_at=datetime.utcnow())
@@ -81,6 +86,7 @@ def skip_link(link_id):
 
 
 @main.route("/link/<link_id>/read", methods=["POST"])
+@login_required
 def read_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     asset.read_at = datetime.utcnow()
@@ -88,6 +94,7 @@ def read_link(link_id):
 
 
 @main.route("/filter/select", methods=["GET", "POST"])
+@login_required
 def select_filter():
     if request.method == "POST":
         session["tag_filter"] = request.form["tag"]
@@ -97,6 +104,13 @@ def select_filter():
             r[0] for r in db.session.query(AssetTag.tag).group_by(AssetTag.tag).all()
         ]
         return render_template("filter_select.html", tags=tags)
+
+
+@main.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("main.index"))
 
 
 def build_new_asset(link):
