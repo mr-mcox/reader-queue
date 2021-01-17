@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="row">
+        <div class="alert alert-success" role="alert">
+            {{ messages[0] }}
+        </div>
+        </div>
+    {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{url_for('main.profile_post')}}">
+        <div class="row">
+            <label for="pinboard_auth" class="form-label">Pinboard auth</label>
+            <input type="text" class="form-control" id="pinboard_auth" name="pinboard_auth" value="{{current_user.pinboard_auth}}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

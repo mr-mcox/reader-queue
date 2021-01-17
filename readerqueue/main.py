@@ -6,8 +6,9 @@ from flask import (
     session,
     Blueprint,
     current_app,
+    flash,
 )
-from flask_login import logout_user, login_required
+from flask_login import logout_user, login_required, current_user
 from readerqueue.models import Asset, AssetSkip, AssetTag
 import httpx
 import random
@@ -30,7 +31,7 @@ def index():
 @main.route("/link/sync")
 @login_required
 def sync():
-    pinboard_auth = current_app.config["PINBOARD_AUTH_TOKEN"]
+    pinboard_auth = current_user.pinboard_auth
     links = httpx.get(
         f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json&meta=1"
     ).json()
@@ -111,6 +112,20 @@ def select_filter():
 def logout():
     logout_user()
     return redirect(url_for("main.index"))
+
+
+@main.route("/profile", methods=["GET"])
+@login_required
+def profile_get():
+    return render_template("profile.html")
+
+
+@main.route("/profile", methods=["POST"])
+@login_required
+def profile_post():
+    flash("Profile updated")
+    current_user.pinboard_auth = request.form.get("pinboard_auth")
+    return render_template("profile.html")
 
 
 def build_new_asset(link):

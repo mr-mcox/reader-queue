@@ -19,7 +19,6 @@ def app():
     app.config["TESTING"] = True
     app.config["SECRET_KEY"] = "NOtSecret"
     app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
-    app.config["PINBOARD_AUTH_TOKEN"] = "pinboard:auth"
     app.config["ADMIN_USER"] = "me@me.com"
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
@@ -30,7 +29,7 @@ def app():
 
 def test_show_link(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        url="https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -56,7 +55,7 @@ def test_do_not_show_after_three_skips(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -107,7 +106,7 @@ def test_do_not_show_if_read(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -154,7 +153,7 @@ def test_do_not_show_if_read(httpx_mock, client):
 
 def test_show_tags(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -178,7 +177,7 @@ def test_show_tags(httpx_mock, client):
 
 def test_update_tags(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -196,7 +195,7 @@ def test_update_tags(httpx_mock, client):
     signup_and_login(client)
     client.get("/link/sync")
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -220,7 +219,7 @@ def test_update_tags(httpx_mock, client):
 
 def test_filter_by_selected(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pinboard:auth&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -258,3 +257,4 @@ def test_filter_by_selected(httpx_mock, client):
 def signup_and_login(client):
     client.post("/signup", data={"email": "me@me.com", "password": "123"})
     client.post("/login", data={"email": "me@me.com", "password": "123"})
+    client.post("/profile", data={"pinboard_auth": "pb_auth:pb_token"})
