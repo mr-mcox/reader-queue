@@ -8,6 +8,7 @@ flask-migrate==2.5.3
 flask-script==2.0.6
 flask-sqlalchemy==2.4.4; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
 flask==1.1.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
+gunicorn==20.0.4; python_version >= "3.4"
 h11==0.12.0; python_version >= "3.6"
 httpcore==0.12.2; python_version >= "3.6"
 httpx==0.16.1; python_version >= "3.6"
