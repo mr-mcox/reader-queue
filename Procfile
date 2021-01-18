@@ -1,1 +1,1 @@
-web: gunicorn app:readerqueue
+web: gunicorn "readerqueue:create_app()"
