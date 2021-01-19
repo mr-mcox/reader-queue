@@ -280,7 +280,7 @@ sample_html = """
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" type="text/css">
     
 
-    <title>ReaderQueue</title>
+    <title>Why Small Habits Make a Big Difference</title>
     
 </head>
 <body>
