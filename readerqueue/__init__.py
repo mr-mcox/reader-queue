@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
+import nltk
 
 
 db = SQLAlchemy()
@@ -22,6 +23,7 @@ def create_app():
     login_manager = LoginManager()
     login_manager.login_view = "auth.login_get"
     login_manager.init_app(app)
+    nltk.download("punkt")
     db.init_app(app)
     Bootstrap(app)
     from .main import main as main_blueprint

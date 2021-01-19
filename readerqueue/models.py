@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSON
 from flask_login import UserMixin
 import uuid
 
@@ -16,6 +16,8 @@ class Asset(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     url = Column(String, nullable=False, index=True, unique=True)
     title = Column(String)
+    description = Column(String(2000))
+    biblio = Column(JSON)
     change_hash = Column(String)
     pinboard_created_at = Column(DateTime)
     read_at = Column(DateTime)

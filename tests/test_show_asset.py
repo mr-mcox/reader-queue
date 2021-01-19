@@ -44,6 +44,7 @@ def test_show_link(httpx_mock, client):
             }
         ],
     )
+    httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
     rv = client.get("/link/suggested")
@@ -81,6 +82,7 @@ def test_do_not_show_after_three_skips(httpx_mock, client):
             },
         ],
     )
+    httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
     skip_url = "https://huggingface.co/blog/ray-tune"
@@ -132,6 +134,7 @@ def test_do_not_show_if_read(httpx_mock, client):
             },
         ],
     )
+    httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
     read_url = "https://huggingface.co/blog/ray-tune"
@@ -168,6 +171,7 @@ def test_show_tags(httpx_mock, client):
             },
         ],
     )
+    httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
     rv = client.get("/filter/select")
@@ -192,6 +196,7 @@ def test_update_tags(httpx_mock, client):
             },
         ],
     )
+    httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
     httpx_mock.add_response(
@@ -245,6 +250,7 @@ def test_filter_by_selected(httpx_mock, client):
             },
         ],
     )
+    httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     expected_url = 'https://fs.blog/2018/12/habits-james-clear/"'
     client.get("/link/sync")
@@ -258,3 +264,99 @@ def signup_and_login(client):
     client.post("/signup", data={"email": "me@me.com", "password": "123"})
     client.post("/login", data={"email": "me@me.com", "password": "123"})
     client.post("/profile", data={"pinboard_auth": "pb_auth:pb_token"})
+
+
+sample_html = """
+<!doctype html>
+<html lang="en">
+<head>
+    
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" type="text/css">
+    
+
+    <title>ReaderQueue</title>
+    
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            
+    <li class="nav-item">
+    <a class=" nav-link "
+       href="/">
+        Home 
+    </a>
+    </li>
+
+        </ul>
+        <ul class="navbar-nav mr-auto">
+            
+    <li class="nav-item">
+    <a class=" nav-link "
+       href="/filter/select">
+        Filter 
+    </a>
+    </li>
+
+        </ul>
+        <ul class="navbar-nav mr-auto">
+            
+    <li class="nav-item">
+    <a class=" nav-link "
+       href="/logout">
+        Logout 
+    </a>
+    </li>
+
+        </ul>
+    </div>
+</nav>
+
+<!-- Your page content -->
+
+<div class="container">
+    <div class="row">
+        <a href="https://www.askalana.com/the-big-rocks-and-the-jar-a-lesson-in-making-priorities/" target="_blank" rel="noopener noreferrer">The Big Rocks and the Jar: A Lesson in Making Priorities - askAlana.com</a>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <form method="POST" action="/link/189e9630-2e6a-45db-8926-c7f56f56c70c/skip">
+                <input type="submit" class="btn btn-primary" value="Skip">
+            </form>
+        </div>
+        <div class="col-sm">
+            <form method="POST" action="/link/189e9630-2e6a-45db-8926-c7f56f56c70c/read">
+                <input type="submit" class="btn btn-secondary" value="Complete">
+            </form>
+        </div>
+        <div class="col-sm">
+
+            <a class="btn btn-success" href="https://www.askalana.com/the-big-rocks-and-the-jar-a-lesson-in-making-priorities/" target="_blank" rel="noopener noreferrer" role="button">Read</a>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+
+<!-- Optional JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.0/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
+"""

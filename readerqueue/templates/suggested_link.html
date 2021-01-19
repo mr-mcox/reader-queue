@@ -2,7 +2,31 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <a href="{{asset.url}}" target="_blank" rel="noopener noreferrer">{{asset.title}}</a>
+        {% if asset.has_image %}
+            <div class="col-sm-3">
+                <img src="{{asset.image}}" class="img-fluid">
+            </div>
+            <div class="col-sm-9">
+                <div class="row">
+                    <h3><a href="{{asset.url}}" target="_blank" rel="noopener noreferrer">{{asset.title}}</a></h3>
+                </div>
+                {% if asset.reading_time %}
+                <div class="row">
+                    <i>{{asset.reading_time}}</i>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <p>{{asset.description}}</p>
+                </div>
+            </div>
+        {% else %}
+            <h3><a href="{{asset.url}}" target="_blank" rel="noopener noreferrer">{{asset.title}}</a></h3>
+            {% if asset.description %}
+            </div>
+            <div class="row">
+                <p>{{asset.description}}</p>
+            {% endif %}
+        {% endif %}
     </div>
     <div class="row">
         <div class="col-sm">

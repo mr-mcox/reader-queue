@@ -5,18 +5,22 @@ from flask import (
     request,
     session,
     Blueprint,
-    current_app,
     flash,
 )
 from flask_login import logout_user, login_required, current_user
 from readerqueue.models import Asset, AssetSkip, AssetTag, User
+from readerqueue.presenters import AssetPresenter
 import httpx
 import random
 from datetime import datetime
 from sqlalchemy import func
 import maya
 import math
+from newspaper import Article
+import asyncio
+from urllib.parse import urlparse
 from . import db
+import logging
 
 
 main = Blueprint("main", __name__)
@@ -35,6 +39,7 @@ def sync():
     links = httpx.get(
         f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json&meta=1"
     ).json()
+    new_assets = list()
     for link in links:
         id_ = link["hash"]
         asset = (
@@ -46,9 +51,11 @@ def sync():
         if asset is None:
             asset = build_new_asset(link)
             current_user.assets.append(asset)
+            new_assets.append(asset)
             db.session.add(current_user)
         if asset.change_hash != link["meta"]:
             update_tags(asset, link["tags"])
+    update_biblio_for_assets(new_assets)
     db.session.commit()
     return redirect(url_for("main.suggested_link"))
 
@@ -79,7 +86,7 @@ def suggested_link():
         max_score = days_passed_adj[0] + 0.1
     weights = [max_score - x for x in days_passed_adj]
     asset = random.choices(assets, k=1, weights=weights)[0]
-    return render_template("suggested_link.html", asset=asset)
+    return render_template("suggested_link.html", asset=AssetPresenter(asset))
 
 
 @main.route("/link/<link_id>/skip", methods=["POST"])
@@ -148,6 +155,7 @@ def build_new_asset(link):
         upstream_id=id_,
         url=link["href"],
         title=link["description"],
+        description=link["extended"],
         change_hash=link["meta"],
         pinboard_created_at=maya.parse(link["time"]).datetime(),
     )
@@ -166,3 +174,65 @@ def update_tags(asset, link_tags):
     new_tags = current_tags - existing_tags
     for tag in new_tags:
         asset.tags.append(AssetTag(tag=tag))
+
+
+def update_biblio(asset, html):
+    metadata = dict()
+    if len(html) > 0:
+        article = Article(url=asset.url)
+        article.download(input_html=html)
+        article.parse()
+        article.nlp()
+        to_extract = ["title", "authors", "top_image", "summary", "keywords"]
+        for item_name in to_extract:
+            item = getattr(article, item_name)
+            if len(item) > 0:
+                metadata[item_name] = item
+        n_words = len(article.text.split())
+        if n_words > 0:
+            metadata["n_words"] = n_words
+    metadata["domain"] = urlparse(asset.url).hostname
+    asset.biblio = metadata
+    return asset
+
+
+def asset_html(assets):
+    return asyncio.run(download_html_concurrently(assets))
+
+
+async def download_html_concurrently(assets):
+    async with httpx.AsyncClient() as client:
+        htmls = await asyncio.gather(*[async_get_html(a.url, client) for a in assets])
+    return zip(assets, htmls)
+
+
+async def async_get_html(url, client):
+    try:
+        r = await client.get(url)
+        logging.info(f"Got {url}")
+        return r.text
+    except Exception as error:
+        logging.warning(f"Failed to get {url} with {type(error)}")
+        return ""
+
+
+def update_biblio_for_assets(new_assets):
+    asset_htmls = asset_html(assets=new_assets)
+    for asset, html in asset_htmls:
+        update_biblio(asset, html=html)
+
+
+def get_html(url, client):
+    try:
+        r = client.get(url)
+        logging.info(f"Got {url}")
+        return r.text
+    except Exception as error:
+        logging.warning(f"Failed to get {url} with {type(error)}")
+        return ""
+
+
+def download_html_serial(assets):
+    client = httpx.Client()
+    htmls = [get_html(a.url, client) for a in assets]
+    return zip(assets, htmls)
