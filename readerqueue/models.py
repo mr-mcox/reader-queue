@@ -20,10 +20,10 @@ class Asset(Base):
     biblio = Column(JSON)
     change_hash = Column(String)
     pinboard_created_at = Column(DateTime)
-    read_at = Column(DateTime)
     user = relationship("User", back_populates="assets")
     skips = relationship("AssetSkip", back_populates="asset")
     tags = relationship("AssetTag", back_populates="asset")
+    events = relationship("AssetEvent", back_populates="asset")
 
 
 class AssetSkip(Base):
@@ -49,3 +49,13 @@ class User(UserMixin, Base):
     password_hash = Column(String(100))
     pinboard_auth = Column(String(100))
     assets = relationship("Asset", back_populates="user")
+
+
+class AssetEvent(Base):
+    __tablename__ = "asset_events"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("assets.id"))
+    name = Column(String, nullable=False, index=True)
+    occurred_at = Column(DateTime, nullable=False)
+
+    asset = relationship("Asset", back_populates="events")

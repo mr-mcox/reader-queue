@@ -105,6 +105,8 @@ def skip_link(link_id):
 def read_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     asset.read_at = datetime.utcnow()
+    db.session.add(asset)
+    db.session.commit()
     return redirect(url_for("main.suggested_link"))
 
 
