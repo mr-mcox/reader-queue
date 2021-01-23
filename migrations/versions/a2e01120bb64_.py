@@ -86,5 +86,6 @@ def downgrade():
     ):
         asset = event.asset
         asset.skips.append(AssetSkip(occurred_at=event.occurred_at))
+        session.delete(event)
         session.add(asset)
     session.commit()

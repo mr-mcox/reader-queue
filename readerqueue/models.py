@@ -19,7 +19,6 @@ class Asset(Base):
     description = Column(String(2000))
     biblio = Column(JSON)
     change_hash = Column(String)
-    pinboard_created_at = Column(DateTime)
     user = relationship("User", back_populates="assets")
     tags = relationship("AssetTag", back_populates="asset")
     events = relationship("AssetEvent", back_populates="asset")

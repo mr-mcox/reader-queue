@@ -62,9 +62,9 @@ def sync():
 @main.route("/link/suggested")
 @login_required
 def suggested_link():
-    query = db.session.query(Asset, Asset.pinboard_created_at).filter(
+    query = db.session.query(Asset, AssetEvent.occurred_at).filter(
         Asset.user_id == current_user.id
-    )
+    ).join(AssetEvent).filter(AssetEvent.name == "bookmarked")
     tag_filter = session.get("tag_filter")
     if tag_filter is not None and tag_filter != "all":
         query = query.join(AssetTag).filter(AssetTag.tag == tag_filter)
@@ -152,7 +152,9 @@ def build_new_asset(link):
         title=link["description"],
         description=link["extended"],
         change_hash=link["meta"],
-        pinboard_created_at=maya.parse(link["time"]).datetime(),
+    )
+    asset.events.append(
+        AssetEvent(name="bookmarked", occurred_at=maya.parse(link["time"]).datetime())
     )
     for tag_str in link["tags"].split():
         tag = AssetTag(tag=tag_str)
