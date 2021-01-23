@@ -8,12 +8,11 @@ from flask import (
     flash,
 )
 from flask_login import logout_user, login_required, current_user
-from readerqueue.models import Asset, AssetSkip, AssetTag, User
+from readerqueue.models import Asset, AssetTag, User, AssetEvent
 from readerqueue.presenters import AssetPresenter
 import httpx
 import random
 from datetime import datetime
-from sqlalchemy import func
 import maya
 import math
 from newspaper import Article
@@ -63,23 +62,18 @@ def sync():
 @main.route("/link/suggested")
 @login_required
 def suggested_link():
-    query = (
-        db.session.query(Asset, Asset.pinboard_created_at, func.count(AssetSkip.id))
-        .filter(Asset.read_at == None)
-        .filter(Asset.user_id == current_user.id)
-        .outerjoin(AssetSkip)
-        .group_by(Asset.id)
-        .having(func.count(1) < 3)
+    query = db.session.query(Asset, Asset.pinboard_created_at).filter(
+        Asset.user_id == current_user.id
     )
     tag_filter = session.get("tag_filter")
     if tag_filter is not None and tag_filter != "all":
         query = query.join(AssetTag).filter(AssetTag.tag == tag_filter)
     result = query.all()
-    assets, created_at, skips = list(zip(*result))
+    assets, created_at = list(zip(*result))
     days_passed_ln = [
         math.log((datetime.utcnow() - d).total_seconds()) for d in created_at
     ]
-    days_passed_adj = [d + s for d, s in zip(days_passed_ln, skips)]
+    days_passed_adj = [d for d in days_passed_ln]
     if len(days_passed_adj) > 1:
         max_score = max(*days_passed_adj) + 0.1
     else:
@@ -93,8 +87,7 @@ def suggested_link():
 @login_required
 def skip_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
-    skip = AssetSkip(occurred_at=datetime.utcnow())
-    asset.skips.append(skip)
+    asset.events.append(AssetEvent(name="skipped", occurred_at=datetime.utcnow()))
     db.session.add(asset)
     db.session.commit()
     return redirect(url_for("main.suggested_link"))
@@ -104,7 +97,7 @@ def skip_link(link_id):
 @login_required
 def read_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
-    asset.read_at = datetime.utcnow()
+    asset.events.append(AssetEvent(name="read", occurred_at=datetime.utcnow()))
     db.session.add(asset)
     db.session.commit()
     return redirect(url_for("main.suggested_link"))

@@ -1,5 +1,5 @@
 from flask import Flask
-from readerqueue.models import Asset, AssetSkip, AssetTag
+from readerqueue.models import Asset, AssetTag
 import os
 from flask_sqlalchemy import SQLAlchemy
 import logging

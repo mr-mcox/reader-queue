@@ -21,17 +21,8 @@ class Asset(Base):
     change_hash = Column(String)
     pinboard_created_at = Column(DateTime)
     user = relationship("User", back_populates="assets")
-    skips = relationship("AssetSkip", back_populates="asset")
     tags = relationship("AssetTag", back_populates="asset")
     events = relationship("AssetEvent", back_populates="asset")
-
-
-class AssetSkip(Base):
-    __tablename__ = "asset_skips"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
-    occurred_at = Column(DateTime, nullable=False)
-    asset_id = Column(UUID(as_uuid=True), ForeignKey("assets.id"))
-    asset = relationship("Asset", back_populates="skips")
 
 
 class AssetTag(Base):

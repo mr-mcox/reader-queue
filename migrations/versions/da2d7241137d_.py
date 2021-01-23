@@ -7,8 +7,8 @@ Create Date: 2021-01-23 11:44:57.886461
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy import orm
 from sqlalchemy.dialects import postgresql
+from sqlalchemy import orm
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
