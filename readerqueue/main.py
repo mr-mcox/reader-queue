@@ -62,9 +62,13 @@ def sync():
 @main.route("/link/suggested")
 @login_required
 def suggested_link():
-    query = db.session.query(Asset, AssetEvent.occurred_at).filter(
-        Asset.user_id == current_user.id
-    ).join(AssetEvent).filter(AssetEvent.name == "bookmarked")
+    query = (
+        db.session.query(Asset, AssetEvent.occurred_at)
+        .filter(Asset.status == "active")
+        .filter(Asset.user_id == current_user.id)
+        .join(AssetEvent)
+        .filter(AssetEvent.name == "bookmarked")
+    )
     tag_filter = session.get("tag_filter")
     if tag_filter is not None and tag_filter != "all":
         query = query.join(AssetTag).filter(AssetTag.tag == tag_filter)
@@ -98,6 +102,17 @@ def skip_link(link_id):
 def read_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     asset.events.append(AssetEvent(name="read", occurred_at=datetime.utcnow()))
+    db.session.add(asset)
+    db.session.commit()
+    return redirect(url_for("main.suggested_link"))
+
+
+@main.route("/link/<link_id>/archive", methods=["POST"])
+@login_required
+def read_link(link_id):
+    asset = db.session.query(Asset).filter(Asset.id == link_id).one()
+    asset.events.append(AssetEvent(name="archived", occurred_at=datetime.utcnow()))
+    asset.status = "archived"
     db.session.add(asset)
     db.session.commit()
     return redirect(url_for("main.suggested_link"))
