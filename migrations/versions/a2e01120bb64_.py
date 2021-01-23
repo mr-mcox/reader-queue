@@ -31,6 +31,7 @@ class Asset(Base):
     read_at = Column(DateTime)
 
     skips = relationship("AssetSkip", back_populates="asset")
+    events = relationship("AssetEvent", back_populates="asset")
 
 
 class AssetSkip(Base):
