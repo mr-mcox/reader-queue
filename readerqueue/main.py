@@ -97,6 +97,13 @@ def skip_link(link_id):
     return redirect(url_for("main.suggested_link"))
 
 
+@main.route("/asset/<asset_id>", methods=["GET"])
+@login_required
+def show_asset(asset_id):
+    asset = db.session.query(Asset).filter(Asset.id == asset_id).one()
+    return render_template("suggested_link.html", asset=AssetPresenter(asset))
+
+
 @main.route("/link/<link_id>/read", methods=["POST"])
 @login_required
 def read_link(link_id):
@@ -109,7 +116,7 @@ def read_link(link_id):
 
 @main.route("/link/<link_id>/archive", methods=["POST"])
 @login_required
-def read_link(link_id):
+def archive_link(link_id):
     asset = db.session.query(Asset).filter(Asset.id == link_id).one()
     asset.events.append(AssetEvent(name="archived", occurred_at=datetime.utcnow()))
     asset.status = "archived"

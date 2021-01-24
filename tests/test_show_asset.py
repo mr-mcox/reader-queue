@@ -27,7 +27,7 @@ def app():
     Base.metadata.drop_all(engine)
 
 
-def test_show_link(httpx_mock, client):
+def test_show_link_suggested(httpx_mock, client):
     httpx_mock.add_response(
         url="https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
@@ -52,11 +52,11 @@ def test_show_link(httpx_mock, client):
     assert "Why Small Habits Make a Big Difference" in rv.data.decode("utf-8")
 
 
-def test_do_not_show_after_three_skips(httpx_mock, client):
+def test_show_link(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        url="https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -64,47 +64,23 @@ def test_do_not_show_after_three_skips(httpx_mock, client):
                 "extended": "",
                 "meta": "58d345907a0d7379d0084efe0523e7e9",
                 "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "",
-            },
-            {
-                "href": "https://huggingface.co/blog/ray-tune",
-                "description": "Hyperparameter Search with Transformers and Ray Tune",
-                "extended": "",
-                "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
-                "hash": "75270ca9c0996db589b4abb733cadd05",
                 "time": "2021-01-04T16:32:40Z",
                 "shared": "no",
                 "toread": "yes",
                 "tags": "",
-            },
+            }
         ],
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
-    skip_url = "https://huggingface.co/blog/ray-tune"
-    skip_url_seen = False
-    for i in range(10):
-        rv = client.get("/link/suggested")
-        if skip_url in rv.data.decode("utf-8"):
-            skip_url_seen = True
-            break
-    assert skip_url_seen
-
-    skip_asset = db.session.query(Asset).filter(Asset.url == skip_url).one()
-    # Post skip three times
-    for _ in range(3):
-        client.post(url_for("main.skip_link", link_id=skip_asset.id, _external=False))
-
-    for _ in range(10):
-        rv = client.get("/link/suggested")
-        assert skip_url not in rv.data.decode("utf-8")
+    asset = db.session.query(Asset).first()
+    rv = client.get(url_for("main.show_asset", asset_id=asset.id))
+    assert "https://fs.blog/2018/12/habits-james-clear/" in rv.data.decode("utf-8")
+    assert "Why Small Habits Make a Big Difference" in rv.data.decode("utf-8")
 
 
-def test_do_not_show_if_read(httpx_mock, client):
+def test_do_not_show_if_archived(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
@@ -147,7 +123,7 @@ def test_do_not_show_if_read(httpx_mock, client):
     assert read_url_seen
 
     read_asset = db.session.query(Asset).filter(Asset.url == read_url).one()
-    client.post(url_for("main.read_link", link_id=read_asset.id, _external=False))
+    client.post(url_for("main.archive_link", link_id=read_asset.id, _external=False))
 
     for _ in range(10):
         rv = client.get("/link/suggested")
