@@ -35,13 +35,14 @@
             </form>
         </div>
         <div class="col-sm">
-            <form method="POST" action="{{url_for('main.read_link', link_id=asset.id)}}">
+            <form method="POST" action="{{url_for('main.archive_link', link_id=asset.id)}}">
                 <input type="submit" class="btn btn-secondary" value="Complete">
             </form>
         </div>
         <div class="col-sm">
-
-            <a class="btn btn-success" href="{{asset.url}}" target="_blank" rel="noopener noreferrer" role="button">Read</a>
+            <form method="POST" action="{{url_for('main.read_link', link_id=asset.id)}}">
+                <input type="submit" class="btn btn-success" value="Read">
+            </form>
         </div>
     </div>
 </div>

@@ -47,7 +47,7 @@ def test_show_link_suggested(httpx_mock, client):
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
-    rv = client.get("/link/suggested")
+    rv = client.get("/link/suggested", follow_redirects=True)
     assert "https://fs.blog/2018/12/habits-james-clear/" in rv.data.decode("utf-8")
     assert "Why Small Habits Make a Big Difference" in rv.data.decode("utf-8")
 
@@ -116,7 +116,7 @@ def test_do_not_show_if_archived(httpx_mock, client):
     read_url = "https://huggingface.co/blog/ray-tune"
     read_url_seen = False
     for i in range(10):
-        rv = client.get("/link/suggested")
+        rv = client.get("/link/suggested", follow_redirects=True)
         if read_url in rv.data.decode("utf-8"):
             read_url_seen = True
             break
@@ -126,7 +126,7 @@ def test_do_not_show_if_archived(httpx_mock, client):
     client.post(url_for("main.archive_link", link_id=read_asset.id, _external=False))
 
     for _ in range(10):
-        rv = client.get("/link/suggested")
+        rv = client.get("/link/suggested", follow_redirects=True)
         assert read_url not in rv.data.decode("utf-8")
 
 
@@ -232,7 +232,48 @@ def test_filter_by_selected(httpx_mock, client):
     client.get("/link/sync")
     client.post("/filter/select", data={"tag": "productivity"})
     for _ in range(10):
-        rv = client.get("/link/suggested")
+        rv = client.get("/link/suggested", follow_redirects=True)
+        assert expected_url in rv.data.decode("utf-8")
+
+
+def test_most_recently_read(httpx_mock, client):
+    from readerqueue.main import db
+
+    httpx_mock.add_response(
+        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        json=[
+            {
+                "href": "https://fs.blog/2018/12/habits-james-clear/",
+                "description": "Why Small Habits Make a Big Difference",
+                "extended": "",
+                "meta": "58d345907a0d7379d0084efe0523e7e9",
+                "hash": "a9b262277a603c023b9fd20d613a9193",
+                "time": "2020-11-15T20:04:09Z",
+                "shared": "no",
+                "toread": "yes",
+                "tags": "productivity",
+            },
+            {
+                "href": "https://huggingface.co/blog/ray-tune",
+                "description": "Hyperparameter Search with Transformers and Ray Tune",
+                "extended": "",
+                "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
+                "hash": "75270ca9c0996db589b4abb733cadd05",
+                "time": "2021-01-04T16:32:40Z",
+                "shared": "no",
+                "toread": "yes",
+                "tags": "machine-learning",
+            },
+        ],
+    )
+    httpx_mock.add_response(data=sample_html)
+    signup_and_login(client)
+    expected_url = "https://fs.blog/2018/12/habits-james-clear/"
+    client.get("/link/sync")
+    read_asset = db.session.query(Asset).filter(Asset.url == expected_url).one()
+    client.post(url_for("main.read_link", link_id=read_asset.id))
+    for _ in range(10):
+        rv = client.get(url_for("main.asset_last_read"), follow_redirects=True)
         assert expected_url in rv.data.decode("utf-8")
 
 

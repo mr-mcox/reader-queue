@@ -10,6 +10,7 @@ from flask import (
 from flask_login import logout_user, login_required, current_user
 from readerqueue.models import Asset, AssetTag, User, AssetEvent
 from readerqueue.presenters import AssetPresenter
+from sqlalchemy.sql import select, func, functions
 import httpx
 import random
 from datetime import datetime
@@ -62,29 +63,80 @@ def sync():
 @main.route("/link/suggested")
 @login_required
 def suggested_link():
-    query = (
-        db.session.query(Asset, AssetEvent.occurred_at)
-        .filter(Asset.status == "active")
-        .filter(Asset.user_id == current_user.id)
-        .join(AssetEvent)
-        .filter(AssetEvent.name == "bookmarked")
+    engine = db.session.get_bind()
+    results = engine.execute(asset_weight_metrics())
+    asset_weights = list()
+    for r in results:
+        score = math.log((datetime.utcnow() - r.bookmarked_at).total_seconds())
+        score = score ** 2
+        score *= 1.5 ** r.n_skips
+        score *= (2 / 3) ** r.n_reads
+        asset_weights.append((r.id, 1 / score))
+    chosen_weight = random.choices(
+        asset_weights, k=1, weights=[a[1] for a in asset_weights]
+    )[0]
+    return redirect(url_for("main.show_asset", asset_id=chosen_weight[0]))
+
+
+def asset_weight_metrics():
+    asset_table = Asset.__table__
+    a_event_table = AssetEvent.__table__
+    bookmarked_at_q = (
+        select(
+            [
+                a_event_table.c.asset_id,
+                func.min(a_event_table.c.occurred_at).label("bookmarked_at"),
+            ]
+        )
+        .where(a_event_table.c.name == "bookmarked")
+        .group_by(a_event_table.c.asset_id)
+        .alias("bookmarked_at")
     )
+    n_skips_q = (
+        select(
+            [
+                a_event_table.c.asset_id,
+                func.count(a_event_table.c.occurred_at).label("n_skips"),
+            ]
+        )
+        .where(a_event_table.c.name == "skipped")
+        .group_by(a_event_table.c.asset_id)
+        .alias("n_skips")
+    )
+    n_reads_q = (
+        select(
+            [
+                a_event_table.c.asset_id,
+                func.count(a_event_table.c.occurred_at).label("n_read"),
+            ]
+        )
+        .where(a_event_table.c.name == "read")
+        .group_by(a_event_table.c.asset_id)
+        .alias("n_read")
+    )
+    query = (
+        select(
+            [
+                asset_table.c.id,
+                bookmarked_at_q.c.bookmarked_at,
+                functions.coalesce(n_skips_q.c.n_skips, 0).label("n_skips"),
+                functions.coalesce(n_reads_q.c.n_read, 0).label("n_reads"),
+            ]
+        )
+        .where(asset_table.c.user_id == current_user.id)
+        .where(asset_table.c.status == "active")
+    )
+    join_tables = [bookmarked_at_q, n_skips_q, n_reads_q]
     tag_filter = session.get("tag_filter")
     if tag_filter is not None and tag_filter != "all":
-        query = query.join(AssetTag).filter(AssetTag.tag == tag_filter)
-    result = query.all()
-    assets, created_at = list(zip(*result))
-    days_passed_ln = [
-        math.log((datetime.utcnow() - d).total_seconds()) for d in created_at
-    ]
-    days_passed_adj = [d for d in days_passed_ln]
-    if len(days_passed_adj) > 1:
-        max_score = max(*days_passed_adj) + 0.1
-    else:
-        max_score = days_passed_adj[0] + 0.1
-    weights = [max_score - x for x in days_passed_adj]
-    asset = random.choices(assets, k=1, weights=weights)[0]
-    return render_template("suggested_link.html", asset=AssetPresenter(asset))
+        tag_table = AssetTag.__table__
+        join_tables.append(tag_table)
+        query = query.where(tag_table.c.tag == tag_filter)
+    joins = asset_table
+    for t in join_tables:
+        joins = joins.outerjoin(t)
+    query = query.select_from(joins)
+    return query
 
 
 @main.route("/link/<link_id>/skip", methods=["POST"])
@@ -104,6 +156,20 @@ def show_asset(asset_id):
     return render_template("suggested_link.html", asset=AssetPresenter(asset))
 
 
+@main.route("/asset/last_read", methods=["GET"])
+@login_required
+def asset_last_read():
+    asset = (
+        db.session.query(Asset)
+        .join(AssetEvent)
+        .filter(Asset.user_id == current_user.id)
+        .filter(AssetEvent.name == "read")
+        .order_by(AssetEvent.occurred_at.desc())
+        .first()
+    )
+    return redirect(url_for("main.show_asset", asset_id=asset.id))
+
+
 @main.route("/link/<link_id>/read", methods=["POST"])
 @login_required
 def read_link(link_id):
@@ -111,7 +177,7 @@ def read_link(link_id):
     asset.events.append(AssetEvent(name="read", occurred_at=datetime.utcnow()))
     db.session.add(asset)
     db.session.commit()
-    return redirect(url_for("main.suggested_link"))
+    return redirect(asset.url)
 
 
 @main.route("/link/<link_id>/archive", methods=["POST"])
