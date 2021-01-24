@@ -36,7 +36,8 @@ def index():
 @login_required
 def sync():
     pinboard_auth = current_user.pinboard_auth
-    links = httpx.get(
+    client = httpx.Client(timeout=httpx.Timeout(5))
+    links = client.get(
         f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json&meta=1"
     ).json()
     new_assets = list()
