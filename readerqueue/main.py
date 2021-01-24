@@ -36,10 +36,13 @@ def index():
 @login_required
 def sync():
     pinboard_auth = current_user.pinboard_auth
-    client = httpx.Client(timeout=httpx.Timeout(5))
-    links = client.get(
-        f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json&meta=1"
-    ).json()
+    client = httpx.Client(timeout=httpx.Timeout(10.0))
+    sync_url = f"https://api.pinboard.in/v1/posts/all?auth_token={pinboard_auth}&format=json&meta=1"
+    try:
+        links = client.get(sync_url).json()
+    except httpx.HTTPError as e:
+        logging.error(f"Got a client error while calling {sync_url}: e")
+        raise e
     new_assets = list()
     for link in links:
         id_ = link["hash"]
