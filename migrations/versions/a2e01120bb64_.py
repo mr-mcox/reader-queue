@@ -28,7 +28,6 @@ class Asset(Base):
     __tablename__ = "assets"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
-    read_at = Column(DateTime)
 
     skips = relationship("AssetSkip", back_populates="asset")
     events = relationship("AssetEvent", back_populates="asset")
