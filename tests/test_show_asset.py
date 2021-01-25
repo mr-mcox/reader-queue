@@ -30,19 +30,23 @@ def app():
 def test_show_link_suggested(httpx_mock, client):
     httpx_mock.add_response(
         url="https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2021-01-04T16:32:40Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "",
-            }
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2021-01-04T16:32:40Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "",
+                }
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
@@ -57,19 +61,23 @@ def test_show_link(httpx_mock, client):
 
     httpx_mock.add_response(
         url="https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2021-01-04T16:32:40Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "",
-            }
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2021-01-04T16:32:40Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "",
+                }
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
@@ -85,30 +93,34 @@ def test_do_not_show_if_archived(httpx_mock, client):
 
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "",
-            },
-            {
-                "href": "https://huggingface.co/blog/ray-tune",
-                "description": "Hyperparameter Search with Transformers and Ray Tune",
-                "extended": "",
-                "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
-                "hash": "75270ca9c0996db589b4abb733cadd05",
-                "time": "2021-01-04T16:32:40Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "",
-            },
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2020-11-15T20:04:09Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "",
+                },
+                {
+                    "href": "https://huggingface.co/blog/ray-tune",
+                    "description": "Hyperparameter Search with Transformers and Ray Tune",
+                    "extended": "",
+                    "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
+                    "hash": "75270ca9c0996db589b4abb733cadd05",
+                    "time": "2021-01-04T16:32:40Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "",
+                },
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
@@ -133,19 +145,23 @@ def test_do_not_show_if_archived(httpx_mock, client):
 def test_show_tags(httpx_mock, client):
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "habits productivity",
-            },
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2020-11-15T20:04:09Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "habits productivity",
+                },
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
@@ -158,38 +174,46 @@ def test_show_tags(httpx_mock, client):
 def test_update_tags(httpx_mock, client):
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "habits james",
-            },
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2020-11-15T20:04:09Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "habits james",
+                },
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
     client.get("/link/sync")
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "new_meta",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "habits productivity",
-            },
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "new_meta",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2020-11-15T20:04:09Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "habits productivity",
+                },
+            ],
+        },
     )
     client.get("/link/sync")
     rv = client.get("/filter/select")
@@ -201,30 +225,34 @@ def test_update_tags(httpx_mock, client):
 def test_filter_by_selected(httpx_mock, client):
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "productivity",
-            },
-            {
-                "href": "https://huggingface.co/blog/ray-tune",
-                "description": "Hyperparameter Search with Transformers and Ray Tune",
-                "extended": "",
-                "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
-                "hash": "75270ca9c0996db589b4abb733cadd05",
-                "time": "2021-01-04T16:32:40Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "machine-learning",
-            },
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2020-11-15T20:04:09Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "productivity",
+                },
+                {
+                    "href": "https://huggingface.co/blog/ray-tune",
+                    "description": "Hyperparameter Search with Transformers and Ray Tune",
+                    "extended": "",
+                    "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
+                    "hash": "75270ca9c0996db589b4abb733cadd05",
+                    "time": "2021-01-04T16:32:40Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "machine-learning",
+                },
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)
@@ -241,30 +269,34 @@ def test_most_recently_read(httpx_mock, client):
 
     httpx_mock.add_response(
         "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
-        json=[
-            {
-                "href": "https://fs.blog/2018/12/habits-james-clear/",
-                "description": "Why Small Habits Make a Big Difference",
-                "extended": "",
-                "meta": "58d345907a0d7379d0084efe0523e7e9",
-                "hash": "a9b262277a603c023b9fd20d613a9193",
-                "time": "2020-11-15T20:04:09Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "productivity",
-            },
-            {
-                "href": "https://huggingface.co/blog/ray-tune",
-                "description": "Hyperparameter Search with Transformers and Ray Tune",
-                "extended": "",
-                "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
-                "hash": "75270ca9c0996db589b4abb733cadd05",
-                "time": "2021-01-04T16:32:40Z",
-                "shared": "no",
-                "toread": "yes",
-                "tags": "machine-learning",
-            },
-        ],
+        json={
+            "date": "2021-01-24T19:04:16Z",
+            "user": "pb_auth",
+            "posts": [
+                {
+                    "href": "https://fs.blog/2018/12/habits-james-clear/",
+                    "description": "Why Small Habits Make a Big Difference",
+                    "extended": "",
+                    "meta": "58d345907a0d7379d0084efe0523e7e9",
+                    "hash": "a9b262277a603c023b9fd20d613a9193",
+                    "time": "2020-11-15T20:04:09Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "productivity",
+                },
+                {
+                    "href": "https://huggingface.co/blog/ray-tune",
+                    "description": "Hyperparameter Search with Transformers and Ray Tune",
+                    "extended": "",
+                    "meta": "f62faab7d5e6f28c8a3cf1ff771632cd",
+                    "hash": "75270ca9c0996db589b4abb733cadd05",
+                    "time": "2021-01-04T16:32:40Z",
+                    "shared": "no",
+                    "toread": "yes",
+                    "tags": "machine-learning",
+                },
+            ],
+        },
     )
     httpx_mock.add_response(data=sample_html)
     signup_and_login(client)

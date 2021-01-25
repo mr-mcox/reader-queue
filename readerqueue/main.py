@@ -38,7 +38,7 @@ def sync():
     pinboard_auth = current_user.pinboard_auth
     sync_url = f"https://api.pinboard.in/v1/posts/recent?auth_token={pinboard_auth}&format=json&meta=1"
     client = httpx.Client()
-    links = client.get(sync_url).json()
+    links = client.get(sync_url).json().get("posts", list())
     new_assets = list()
     for link in links:
         id_ = link["hash"]
