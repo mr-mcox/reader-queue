@@ -67,11 +67,12 @@ def suggested_link():
     results = engine.execute(asset_weight_metrics())
     asset_weights = list()
     for r in results:
-        score = math.log((datetime.utcnow() - r.bookmarked_at).total_seconds())
-        score = score ** 2
+        score = math.log(
+            (datetime.utcnow() - r.bookmarked_at).total_seconds() / (60 * 60 * 24)
+        )
         score *= 1.5 ** r.n_skips
         score *= (2 / 3) ** r.n_reads
-        asset_weights.append((r.id, 1 / score))
+        asset_weights.append((r.id, 1 / max(score, 1)))
     chosen_weight = random.choices(
         asset_weights, k=1, weights=[a[1] for a in asset_weights]
     )[0]
