@@ -29,7 +29,7 @@ def app():
 
 def test_show_link_suggested(httpx_mock, client):
     httpx_mock.add_response(
-        url="https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        url="https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -56,7 +56,7 @@ def test_show_link(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
-        url="https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        url="https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -84,7 +84,7 @@ def test_do_not_show_if_archived(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -132,7 +132,7 @@ def test_do_not_show_if_archived(httpx_mock, client):
 
 def test_show_tags(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -157,7 +157,7 @@ def test_show_tags(httpx_mock, client):
 
 def test_update_tags(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -176,7 +176,7 @@ def test_update_tags(httpx_mock, client):
     signup_and_login(client)
     client.get("/link/sync")
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -200,7 +200,7 @@ def test_update_tags(httpx_mock, client):
 
 def test_filter_by_selected(httpx_mock, client):
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
@@ -240,7 +240,7 @@ def test_most_recently_read(httpx_mock, client):
     from readerqueue.main import db
 
     httpx_mock.add_response(
-        "https://api.pinboard.in/v1/posts/all?auth_token=pb_auth:pb_token&format=json&meta=1",
+        "https://api.pinboard.in/v1/posts/recent?auth_token=pb_auth:pb_token&format=json&meta=1",
         json=[
             {
                 "href": "https://fs.blog/2018/12/habits-james-clear/",
